@@ -24,16 +24,27 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-// Upload image route
-router.post('/upload', upload.single('image'), async (req, res) => {
+// Upload image and create product route
+router.post('/products', upload.single('image'), async (req, res) => {
   try {
+    const { name, description, price } = req.body;
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+      return res.status(400).json({ message: 'No image uploaded' });
     }
-    // File uploaded successfully, return the file path
-    res.json({ imagePath: req.file.path });
+
+    const imageUrl = req.file.path;
+
+    const newProduct = new Product({
+      name,
+      description,
+      price,
+      imageUrl,
+    });
+
+    const savedProduct = await newProduct.save();
+    res.status(201).json(savedProduct);
   } catch (error) {
-    console.error('Error uploading image:', error);
+    console.error('Error creating product:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 });
